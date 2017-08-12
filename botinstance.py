@@ -1,7 +1,7 @@
+#-*- coding : utf-9 -*-
 """
 Author: Sturza Mihai
 GitHub: https://github.com/MArtzDEV
-
 """
 
 import discord, urllib.request,asyncio, sys, time
@@ -10,7 +10,13 @@ from bs4 import BeautifulSoup
 from termcolor import colored
 
 # creates the bot instance
-bot = commands.Bot("<>")
+    # adds the prefix
+prefix = "<>"
+bot = commands.Bot(prefix)
+
+# ignore this
+music_player = None
+voice_connect = None
 
 # prints some info about the bot after loggin in on the discord servers
 @bot.event
@@ -29,6 +35,35 @@ async def scrap(url):
     first_paragraph = soup.p.getText()
     await bot.say("```"+first_paragraph+"```")
 
+# music player for youtube
+@bot.event
+@asyncio.coroutine
+async def on_message(message):
+    #starting the player
+    if message.content.split()[0] == prefix + "music":
+        if message.content.split()[1] == "play":
+            print(colored("[COMMAND]",'blue'),"The 'music play' command was requested for the url:",message.content.split()[2])
+            await bot.send_message(message.channel,"Playing the requested song.")
+            try:
+                global voice_connect
+                voice_connect = await bot.join_voice_channel(message.author.voice.voice_channel)
+                global music_player
+                music_player = await voice_connect.create_ytdl_player(message.content.split()[2])
+                music_player.start()
+                # sometimes it CAN happen
+            except discord.ClientException:
+                music_player = await voice_connect.create_ytdl_player(message.content.split()[2])
+                music_player.start()
+        # stopping the player
+        elif message.content.split()[1] == "stop":
+            print(colored("[COMMAND]",'blue'),"The 'music stop' command was requested")
+            await bot.send_message(message.channel,"Stopping the requested song.")
+            music_player.stop()
+        # raising or lowering the volume
+        elif message.content.split()[1] == "volume":
+            print(colored("[COMMAND]",'blue'),"The 'music volume' command was requested")
+            await bot.send_message(message.channel,"Adjusting the volume of the song.")
+            music_player.volume = float(message.content.split()[2])/100;
 # running the bot
 try:
     # if user inputs a valid token, the bot will start
