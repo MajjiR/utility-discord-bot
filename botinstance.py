@@ -8,6 +8,7 @@ import discord, urllib.request,asyncio, sys, time
 from discord.ext import commands
 from bs4 import BeautifulSoup
 from termcolor import colored
+from google import search
 
 # creates the bot instance
     # adds the prefix
@@ -25,21 +26,19 @@ def on_ready():
     print("Commands will be displayed with",colored('blue','blue'),"errors with",colored('red','red'),"and bot the bot status with",colored('green','green'))
     print(colored("[LOGIN]","green"),"Logged in as {}".format(bot.user.name))
 
-# this commands gets the firt paragraph of a webpage, displaying it for the user
-@bot.command()
-@asyncio.coroutine
-async def scrap(url):
-    print(colored("[COMMAND]","blue"),"The 'scrap' command was requested for the url:",url)
-    source = urllib.request.urlopen(url)
-    soup = BeautifulSoup(source, 'html.parser')
-    first_paragraph = soup.p.getText()
-    await bot.say("```"+first_paragraph+"```")
-
-# music player for youtube
+"""
+########
+COMMANDS
+########
+"""
 @bot.event
 @asyncio.coroutine
 async def on_message(message):
-    #starting the player
+    """
+    ###########
+    MUSIC PLAYER
+    ###########
+    """
     if message.content.split()[0] == prefix + "music":
         if message.content.split()[1] == "play":
             print(colored("[COMMAND]",'blue'),"The 'music play' command was requested for the url:",message.content.split()[2])
@@ -64,6 +63,19 @@ async def on_message(message):
             print(colored("[COMMAND]",'blue'),"The 'music volume' command was requested")
             await bot.send_message(message.channel,"Adjusting the volume of the song.")
             music_player.volume = float(message.content.split()[2])/100;
+    """
+    ############
+    WEB COMMANDS
+    ############
+    """
+    if message.content.split()[0] == prefix + "web":
+        # web scrapping command
+        if message.content.split()[1] == "scrap":
+            print(colored("[COMMAND]","blue"),"The 'scrap' command was requested for the url:",message.content.split()[2])
+            source = urllib.request.urlopen(message.content.split()[2])
+            soup = BeautifulSoup(source, 'html.parser')
+            first_paragraph = soup.find('p').getText()
+            await bot.send_message(message.channel,"```"+first_paragraph+"```")
 # running the bot
 try:
     # if user inputs a valid token, the bot will start
